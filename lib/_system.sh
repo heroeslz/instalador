@@ -9,31 +9,14 @@
 #######################################
 system_create_user() {
   print_banner
-  printf "${WHITE} 💻 Agora, vamos criar o usuário para a instancia...${GRAY_LIGHT}\n\n"
+  printf "${WHITE} 💻 Agora, vamos criar o usuário para a instancia...${GRAY_LIGHT}"
+  printf "\n\n"
+
   sleep 2
 
-  sudo su - root <<'EOF'
-set -e
-
-USER_NAME=deploy
-
-# cria usuário somente se não existir
-if ! id -u "$USER_NAME" >/dev/null 2>&1; then
-  useradd -m -s /bin/bash -U "$USER_NAME"
-fi
-
-# garante grupo sudo (equivalente ao wheel no Ubuntu)
-usermod -aG sudo "$USER_NAME" || true
-
-# define senha se a variável existir (usa chpasswd em vez de --password)
-if [ -n "${mysql_root_password}" ]; then
-  echo "${USER_NAME}:${mysql_root_password}" | chpasswd
-fi
-
-# prepara home/ssh
-mkdir -p /home/${USER_NAME}/.ssh
-chown -R ${USER_NAME}:${USER_NAME} /home/${USER_NAME}
-chmod 700 /home/${USER_NAME}/.ssh
+  sudo su - root <<EOF
+  useradd -m -p $(openssl passwd -crypt ${mysql_root_password}) -s /bin/bash -G sudo deploy
+  usermod -aG sudo deploy
 EOF
 
   sleep 2
@@ -46,24 +29,14 @@ EOF
 #######################################
 system_git_clone() {
   print_banner
-  printf "${WHITE} 💻 Fazendo download do código Whaticket...${GRAY_LIGHT}\n\n"
+  printf "${WHITE} 💻 Fazendo download do código Whaticket...${GRAY_LIGHT}"
+  printf "\n\n"
+
+
   sleep 2
 
-  sudo su - root <<'EOF'
-set -e
-BASE="/home/deploy/${instancia_add}"
-
-# cria diretório da instância e ajusta dono
-mkdir -p "$BASE"
-chown -R deploy:deploy "$BASE"
-
-# clona apenas se ainda não tem .git (evita duplicar)
-if [ ! -d "$BASE/.git" ]; then
-  sudo -u deploy git clone "${link_git}" "$BASE"
-fi
-
-# garante ownership mesmo após o clone
-chown -R deploy:deploy "$BASE"
+  sudo su - deploy <<EOF
+  git clone ${link_git} /home/deploy/${instancia_add}/
 EOF
 
   sleep 2
