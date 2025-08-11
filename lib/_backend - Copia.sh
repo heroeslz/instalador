@@ -211,8 +211,8 @@ backend_start_pm2() {
 
   sudo su - deploy <<EOF
   cd /home/deploy/${instancia_add}/backend
-  pm2 start dist/server.js --name ${instancia_add}-backend
-  pm2 save --force
+  sudo pm2 start dist/server.js --name ${instancia_add}-backend
+  sudo pm2 save --force
 EOF
 
   sleep 2
@@ -233,7 +233,7 @@ backend_nginx_setup() {
   backend_hostname=$(echo "${backend_url/https:\/\/}")
 
 sudo su - root << EOF
-cat > /etc/nginx/sites-available/${instancia_add}-backend << END
+cat > /etc/nginx/sites-available/${instancia_add}-backend << 'END'
 server {
   server_name $backend_hostname;
   location / {

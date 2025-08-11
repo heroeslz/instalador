@@ -128,8 +128,8 @@ frontend_start_pm2() {
 
   sudo su - deploy <<EOF
   cd /home/deploy/${instancia_add}/frontend
-  pm2 start server.js --name ${instancia_add}-frontend
-  pm2 save --force
+  sudo pm2 start server.js --name ${instancia_add}-frontend
+  sudo pm2 save --force
 EOF
 
  sleep 2
@@ -157,7 +157,7 @@ frontend_nginx_setup() {
 
 sudo su - root << EOF
 
-cat > /etc/nginx/sites-available/${instancia_add}-frontend << END
+cat > /etc/nginx/sites-available/${instancia_add}-frontend << 'END'
 server {
   server_name $frontend_hostname;
 

@@ -29,27 +29,17 @@ EOF
 #######################################
 system_git_clone() {
   print_banner
-  printf "${WHITE} 💻 Fazendo download do código Whaticket...${GRAY_LIGHT}\n\n"
+  printf "${WHITE} 💻 Fazendo download do código Whaticket...${GRAY_LIGHT}"
+  printf "\n\n"
+
+
   sleep 2
 
-  sudo su - root <<'EOF'
-set -e
-BASE="/home/deploy/${instancia_add}"
-mkdir -p "$BASE"
-chown -R deploy:deploy "$BASE"
-
-# clona se não houver .git
-if [ ! -d "$BASE/.git" ]; then
-  sudo -u deploy git clone "${link_git}" "$BASE" || exit 1
-fi
-
-# valida estrutura esperada
-if [ ! -f "$BASE/backend/package.json" ] || [ ! -f "$BASE/frontend/package.json" ]; then
-  echo "ERRO: repo inválido. Esperado backend/ e frontend/ com package.json."
-  exit 1
-fi
-chown -R deploy:deploy "$BASE"
+  sudo su - deploy <<EOF
+  git clone ${link_git} /home/deploy/${instancia_add}/
 EOF
+
+  sleep 2
 }
 
 #######################################
