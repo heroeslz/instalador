@@ -9,17 +9,37 @@
 #######################################
 system_create_user() {
   print_banner
-  printf "${WHITE} 💻 Agora, vamos criar o usuário para a instancia...${GRAY_LIGHT}"
-  printf "\n\n"
-
+  printf "${WHITE} 💻 Agora, vamos criar o usuário para a instancia...${GRAY_LIGHT}\n\n"
   sleep 2
 
-  sudo su - root <<EOF
-  useradd -m -p $(openssl passwd -crypt ${mysql_root_password}) -s /bin/bash -G sudo deploy
-  usermod -aG sudo deploy
-EOF
+  # garante que a senha exista; se não, usa um default seguro
+  local _pass="${mysql_root_password:-ChangeMe123!}"
 
-  sleep 2
+  # cria se não existir
+  if ! id -u deploy >/dev/null 2>&1; then
+    sudo useradd -m -s /bin/bash -U deploy || {
+      echo "ERRO: useradd falhou"; exit 1;
+    }
+  fi
+
+  # garante grupo sudo
+  if ! id -nG deploy | tr ' ' '\n' | grep -q '^sudo$'; then
+    sudo usermod -aG sudo deploy || {
+      echo "ERRO: usermod -aG sudo falhou"; exit 1;
+    }
+  fi
+
+  # define a senha
+  echo "deploy:${_pass}" | sudo chpasswd || {
+    echo "ERRO: chpasswd falhou"; exit 1;
+  }
+
+  # prepara /home
+  sudo mkdir -p /home/deploy/.ssh
+  sudo chown -R deploy:deploy /home/deploy
+  sudo chmod 700 /home/deploy/.ssh
+
+  echo "Usuário deploy criado/ajustado com sucesso."
 }
 
 #######################################
